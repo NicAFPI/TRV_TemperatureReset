@@ -1,0 +1,41 @@
+# Single automation covering every thermostat in a property.
+# Add/remove trigger blocks as rooms are added; extend reset_map to match.
+#
+# Each trigger can have its own "above" threshold (numeric_state doesn't support
+# templated above/below, so thresholds must be set per-trigger like this).
+# The action then looks up the correct reset value via the triggering entity_id.
+
+- id: heating_reset_temperature_property1
+  alias: Heating_ResetTemperature_AllRooms
+  description: "Resets any thermostat that's been set above its threshold"
+  mode: single
+  triggers:
+    - trigger: numeric_state
+      entity_id: climate.rv_br1_gf_thermostat
+      attribute: temperature
+      above: 26
+    - trigger: numeric_state
+      entity_id: climate.rv_br2_gf_thermostat
+      attribute: temperature
+      above: 26
+    - trigger: numeric_state
+      entity_id: climate.rv_lounge_thermostat
+      attribute: temperature
+      above: 27
+    - trigger: numeric_state
+      entity_id: climate.rv_kitchen_thermostat
+      attribute: temperature
+      above: 26
+  conditions: []
+  actions:
+    - variables:
+        reset_map:
+          climate.rv_br1_gf_thermostat: 25
+          climate.rv_br2_gf_thermostat: 25
+          climate.rv_lounge_thermostat: 25
+          climate.rv_kitchen_thermostat: 24
+    - action: climate.set_temperature
+      target:
+        entity_id: "{{ trigger.entity_id }}"
+      data:
+        temperature: "{{ reset_map[trigger.entity_id] }}"
